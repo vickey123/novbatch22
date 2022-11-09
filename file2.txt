@@ -1,1 +1,2 @@
 This is so much fun to teach linux 
+This is linux class
