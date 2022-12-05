@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create my first EC2 instance using cloudformation
+Parameters:
+  imageid: 
+    Default: ami-0b0dcb5067f052a63
+    Description: deltacargoimage
+    Type: String
+  InstanceType:
+    Default: t2.micro
+    Description: deltacargotestinstance
+    Type: String
+  keypair:
+    Default: nov2022
+    Description: Keypair dev instance
+    Type: String
+Resources:
+  WebAppInstanceapache:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref imageid # ImageID valid only in us-east-1 region
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref keypair
+      SecurityGroupIds:
+        - !Ref WebAppSecurityGrouptest:
+      UserData: 
+        Fn::Base64: |
+          #!/bin/bash
+          sudo yum update -y
+          sudo yum install git -y
+          sudo yum install wget
+          sudo yum install httpd -y
+          sudo systemctl start httpd
+          sudo systemctl enable httpd
+          sudo echo "Print my name" >> /var/www/html/index.html
+          sudo amazon-linux-extras install java-openjdk11
+          sudo amazon-linux-extras install epel -y
+          sudo wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
+          sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+          sudo yum install jenkins -y
+          sudo service jenkins start
+
+  WebAppSecurityGrouptest:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: JenkinsGroup
+      GroupDescription: "Allow HTTP/HTTPS and SSH inbound and outbound traffic"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+        
